@@ -15,7 +15,6 @@ const port = 3000
 
 let db = require('./utils/db');
 const Dokter = require('./model/dokters');
-// const Janji = require('./model/janji');
 
 //Menggunakan EJS
 app.set('view engine', 'ejs');

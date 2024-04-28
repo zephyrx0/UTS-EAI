@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 
 const Janji = mongoose.model('Janji', {
+    idJanji: { 
+      type: Number, 
+  },
     idUser: { 
       type: Number, 
   },

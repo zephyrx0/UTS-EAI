@@ -1,5 +1,5 @@
 const mongoose = require ('mongoose')
-mongoose.connect('mongodb+srv://ganelajeisa:ganelajeisa@cluster0.4ula36n.mongodb.net/LayananManajemenJanji');
+mongoose.connect('mongodb+srv://ganelajeisa:ganelajeisa@cluster0.4ula36n.mongodb.net/janji');
 
 //Menambah 1 data
 // const newPasien = new Pasien({

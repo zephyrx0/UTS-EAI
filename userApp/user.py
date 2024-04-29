@@ -1,17 +1,26 @@
 from flask import Flask, jsonify, request, session, redirect, url_for, render_template
+from flask_mysqldb import MySQL
 from datetime import datetime
 from flask import Flask, render_template
-from flask import Flask
-from pymongo import MongoClient
+from flask import redirect, url_for, session
+from flask_cors import CORS
 
 app = Flask(__name__)
-
-# MongoDB config
-app.config['MONGO_URI'] = 'mongodb+srv://ganelajeisa:ganelajeisa@cluster0.4ula36n.mongodb.net/user'
-mongo = MongoClient(app.config['MONGO_URI'])
-
+CORS(app)
 
 app.secret_key = 'cobain'
+
+
+# mysql config
+app.config['MYSQL_HOST'] = 'tubes-nabilamelsyana5-c7f0.a.aivencloud.com'
+app.config['MYSQL_PORT'] = 26484
+app.config['MYSQL_USER'] = 'avnadmin'
+app.config['MYSQL_PASSWORD'] = 'AVNS_pr3FDArYqXJReBFPPXg'
+app.config['MYSQL_DB'] = 'user'
+mysql = MySQL(app)
+
+
+
 
 def create_response(data, status_code, message):
     response = {
@@ -32,21 +41,24 @@ def register():
         password = request.form['password']
         
         # Cek apakah email sudah ada dalam database
-        user = mongo.db.user.find_one({'email': email})
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM user WHERE email = %s", (email,))
+        user = cur.fetchone()
         if user:
             return jsonify({"message": "Email already exists"}), 400
         
         # Tambahkan user baru ke database
-        mongo.db.user.insert_one({
-            'namaUser': nama,
-            'email': email,
-            'password': password,
-            'created_at': datetime.now()
-        })
+        cur.execute("INSERT INTO user (namaUser, email, pass) VALUES (%s, %s, %s)",
+                    (nama, email, password))
+        mysql.connection.commit()
+        cur.close()
         
-        return jsonify({"message": "Registration successful"}), 201
+        # Set session untuk user yang berhasil registrasi
+        session['email'] = email
+
+        # Return respons JSON untuk registrasi berhasil
+        return jsonify({"message": "Registration successful"}), 200
     
-    return render_template('register.html')
 
 # Login route
 @app.route('/login', methods=['GET', 'POST'])
@@ -57,16 +69,17 @@ def login():
         password = request.form['password']
         
         # Cek apakah user ada dalam database dan passwordnya cocok
-        user = mongo.db.user.find_one({'email': email, 'password': password})
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM user WHERE email = %s AND pass = %s", (email, password))
+        user = cur.fetchone()
+        cur.close()
         
         if user:
             # Set session untuk user yang berhasil login
             session['email'] = email
-            return redirect(url_for('dashboard'))
         else:
             return jsonify({"message": "Invalid email or password"}), 401
-    
-    return render_template('login.html')
+    return jsonify({"message": "Login successful"}), 200
 
 # Dashboard route
 @app.route('/dashboard')
@@ -74,12 +87,28 @@ def dashboard():
     # Cek apakah user sudah login
     if 'email' in session:
         email = session['email']
-        user = mongo.db.user.find_one({'email': email})
-        nama = user['namaUser']
-        return f"Welcome to the dashboard, {nama}!"
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT namaUser FROM user WHERE email = %s", (email,))
+        nama = cur.fetchone()[0]
+        cur.close()
+        return render_template('dashboard.html', nama=nama)
     else:
         return redirect(url_for('login'))
+    
+@app.route('/user', methods=['GET', 'POST'])
+def user():
+    if request.method == 'GET':
+        cursor = mysql.connection.cursor()
+        cursor.execute("SELECT * FROM user")
 
+        column_names = [i[0] for i in cursor.description]
+
+        data = []
+        for row in cursor.fetchall():
+            data.append(dict(zip(column_names, row)))
+
+        cursor.close()
+        return create_response(data, 200, 'Success')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
+    app.run(host='0.0.0.0', debug=True, port=3003)

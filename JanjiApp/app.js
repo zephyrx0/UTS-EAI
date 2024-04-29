@@ -1,7 +1,7 @@
 //Menggunakan express
 const express = require('express')
-const router = express.Router();
 const mongoose = require('mongoose');
+const cors = require('cors');
 
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
@@ -13,6 +13,7 @@ const port = 3001
 //Menggunakan EJS
 app.set('view engine', 'ejs');
 app.use(express.urlencoded());
+app.use(cors());
 
 app.use(cookieParser('secret'));
 app.use(session({

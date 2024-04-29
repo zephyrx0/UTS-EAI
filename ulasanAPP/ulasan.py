@@ -1,17 +1,25 @@
 from flask import Flask, jsonify, request, session, redirect, url_for, render_template
+from flask_mysqldb import MySQL
 from datetime import datetime
 from flask import Flask, render_template
-from flask import Flask
-from pymongo import MongoClient
+from flask_cors import CORS
 
 app = Flask(__name__)
-
-# MongoDB config
-app.config['MONGO_URI'] = 'mongodb+srv://ganelajeisa:ganelajeisa@cluster0.4ula36n.mongodb.net/ulasan'
-mongo = MongoClient(app.config['MONGO_URI'])
-
+CORS(app)
 
 app.secret_key = 'cobain'
+
+
+# mysql config
+app.config['MYSQL_HOST'] = 'tubes-nabilamelsyana5-c7f0.a.aivencloud.com'
+app.config['MYSQL_PORT'] = 26484
+app.config['MYSQL_USER'] = 'avnadmin'
+app.config['MYSQL_PASSWORD'] = 'AVNS_pr3FDArYqXJReBFPPXg'
+app.config['MYSQL_DB'] = 'ulasan'
+mysql = MySQL(app)
+
+
+
 
 def create_response(data, status_code, message):
     response = {
@@ -22,17 +30,25 @@ def create_response(data, status_code, message):
     }
     return jsonify(response)
 
+
 @app.route('/ulasan', methods=['GET', 'POST'])
 def ulasan():
     if request.method == 'GET':
-        ulasan_collection = mongo.db.ulasan
-        data = list(ulasan_collection.find())
+        cursor = mysql.connection.cursor()
+        cursor.execute("SELECT * FROM ulasan")
+
+        column_names = [i[0] for i in cursor.description]
+
+        data = []
+        for row in cursor.fetchall():
+            data.append(dict(zip(column_names, row)))
+
+        cursor.close()
         return create_response(data, 200, 'Success')
 
     elif request.method == 'POST':
         try:
-            # Ambil data dari request JSON
-            id_ulasan = request.json['idUlasan']
+            # get data from request
             id_dokter = request.json['idDokter']
             id_user = request.json['idUser']
             nama_user = request.json['namaUser']
@@ -40,43 +56,34 @@ def ulasan():
             poli = request.json['poli']
             ulasan_text = request.json['ulasan']
 
-            # Simpan ulasan ke database
-            ulasan_collection = mongo.db.ulasan
-            ulasan_collection.insert_one({
-                'idUlasan': id_ulasan,
-                'idDokter': id_dokter,
-                'idUser': id_user,
-                'namaUser': nama_user,
-                'namaDokter': nama_dokter,
-                'poli': poli,
-                'ulasan': ulasan_text
-            })
+            # Open connection and insert to db
+            cursor = mysql.connection.cursor()
+            sql = "INSERT INTO ulasan (idDokter, idUser, namaUser, namaDokter, poli, ulasan) VALUES (%s, %s, %s, %s, %s, %s)"
+            val = (id_dokter, id_user, nama_user, nama_dokter, poli, ulasan_text)
+            cursor.execute(sql, val)
+            mysql.connection.commit()
+            cursor.close()
 
             return create_response(None, 201, 'Ulasan berhasil ditambahkan')
         except KeyError:
             return create_response(None, 400, 'Permintaan tidak valid: Kolom yang dibutuhkan tidak ada')
 
-# Detail ulasan route
-@app.route('/detailulasan')
-def detailulasan():
-    parameters = request.args.to_dict()
 
-    if parameters:
-        ulasan_collection = mongo.db.ulasan
-
-        # Membangun query berdasarkan parameter yang diberikan
-        query = {}
-        for key, value in parameters.items():
-            query[key] = value
-
-        data = list(ulasan_collection.find(query))
-
-        if data:
-            return create_response(data, 200, 'Success')
-        else:
-            return create_response(None, 404, 'Not Found: Ulasan not found')
+        
+@app.route('/ulasan/<id_ulasan>', methods=['GET'])
+def detailulasan(id_ulasan):
+    cursor = mysql.connection.cursor()
+    sql = "SELECT * FROM ulasan WHERE idUlasan = %s"
+    cursor.execute(sql, (id_ulasan,))
+    column_names = [i[0] for i in cursor.description]
+    data = []
+    for row in cursor.fetchall():
+        data.append(dict(zip(column_names, row)))
+    cursor.close()
+    if data:
+        return create_response(data, 200, 'Success')
     else:
-        return create_response(None, 400, 'Bad Request: No parameters provided')
+        return create_response(None, 404, 'Not Found: Ulasan not found')
 
 
 
@@ -93,4 +100,4 @@ def detail_ulasan():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
+    app.run(host='0.0.0.0', debug=True, port=3002)

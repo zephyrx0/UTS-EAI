@@ -1,8 +1,7 @@
 //Menggunakan express
 const express = require('express')
 const router = express.Router();
-
-const { body, validationResult, Check } = require('express-validator')
+const mongoose = require('mongoose');
 
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
@@ -10,11 +9,6 @@ const flash = require('connect-flash');
 
 const app = express()
 const port = 3000
-
-//Menggunakan database mongodb
-
-let db = require('./utils/db');
-const Dokter = require('./model/dokters');
 
 //Menggunakan EJS
 app.set('view engine', 'ejs');
@@ -29,24 +23,66 @@ app.use(session({
 }));
 app.use(flash());
 
-// Endpoint untuk mencari semua dokter
+// URL koneksi MongoDB Atlas
+const uri = 'mongodb+srv://ganelajeisa:ganelajeisa@cluster0.4ula36n.mongodb.net/dokter';
+
+// Membuat koneksi ke MongoDB Atlas
+mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+
+// Mendapatkan koneksi default
+const db = mongoose.connection;
+
+// Menangani peristiwa kesalahan
+db.on('error', console.error.bind(console, 'Koneksi MongoDB gagal:'));
+
+// Menangani peristiwa koneksi berhasil
+db.once('open', async () => {
+    console.log('Terhubung ke MongoDB Atlas');
+});
+
+// Definisikan endpoint HTTP dengan app.get()
 app.get('/infodokter', async (req, res) => {
-  const dokter = await Dokter.find();
-  res.json(dokter)
-})
+  try {
+      // Mendapatkan koleksi 'dokter'
+      const dokterCollection = db.collection('dokter');
+
+      // Menjalankan kueri ke koleksi 'dokter'
+      const documents = await dokterCollection.find({}).toArray();
+      console.log('Data dari koleksi:');
+      console.log(documents);
+
+      // Mengirimkan respons JSON dengan data yang ditemukan
+      res.json(documents);
+  } catch (error) {
+      console.error('Gagal mendapatkan data dari MongoDB Atlas:', error);
+      // Mengirimkan respons kesalahan
+      res.status(500).json({ error: 'Gagal mendapatkan data dari MongoDB Atlas' });
+  }
+});
 
 // Endpoint untuk mencari dokter berdasarkan idDokter
-app.get('/infodokter/:idDokter', async (req, res) => {
+app.get('/infodokter/:id', async (req, res) => {
   try {
-    const idDokter = req.params.idDokter;
-    const dokter = await Dokter.findOne({ idDokter: idDokter });
-    if (!dokter) {
-      return res.status(404).json({ message: 'Dokter tidak ditemukan' });
-    }
-    res.json(dokter);
+      const id = req.params.id;
+
+      // Mendapatkan koleksi 'dokter'
+      const dokterCollection = db.collection('dokter');
+
+      // Menjalankan kueri ke koleksi 'dokter' berdasarkan ID
+      const dokter = await dokterCollection.findOne({ idDokter: id });
+
+      if (!dokter) {
+          // Jika dokter tidak ditemukan, kirim respons dengan status 404
+          res.status(404).json({ error: 'Dokter tidak ditemukan' });
+          return;
+      }
+
+      // Mengirimkan respons JSON dengan data dokter yang ditemukan
+      res.json(dokter);
   } catch (error) {
-    console.error('Terjadi kesalahan saat mencari dokter:', error);
-    res.status(500).json({ error: 'Terjadi kesalahan saat mencari dokter' });
+      console.error('Gagal mendapatkan data dari MongoDB Atlas:', error);
+      // Mengirimkan respons kesalahan
+      res.status(500).json({ error: 'Gagal mendapatkan data dari MongoDB Atlas' });
   }
 });
  

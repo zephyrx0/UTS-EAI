@@ -1,8 +1,7 @@
 //Menggunakan express
 const express = require('express')
 const router = express.Router();
-
-const { body, validationResult, Check } = require('express-validator')
+const mongoose = require('mongoose');
 
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
@@ -10,11 +9,6 @@ const flash = require('connect-flash');
 
 const app = express()
 const port = 3001
-
-//Menggunakan database mongodb
-
-let db = require('./utils/db');
-const Janji = require('./model/janji');
 
 //Menggunakan EJS
 app.set('view engine', 'ejs');
@@ -29,34 +23,69 @@ app.use(session({
 }));
 app.use(flash());
 
+// URL koneksi MongoDB Atlas
+const uri = 'mongodb+srv://ganelajeisa:ganelajeisa@cluster0.4ula36n.mongodb.net/janji';
 
+// Membuat koneksi ke MongoDB Atlas
+mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+
+// Mendapatkan koneksi default
+const db = mongoose.connection;
+
+// Menangani peristiwa kesalahan
+db.on('error', console.error.bind(console, 'Koneksi MongoDB gagal:'));
+
+// Menangani peristiwa koneksi berhasil
+db.once('open', async () => {
+    console.log('Terhubung ke MongoDB Atlas');
+});
+
+// Definisikan endpoint HTTP dengan app.get()
 app.get('/infojanji', async (req, res) => {
-  console.log('Menerima permintaan /infojanji');
   try {
-    const janji = await Janji.find();
-    res.json(janji);
-  } catch (error) {
-    console.error('Terjadi kesalahan saat mencari janji:', error);
-    res.status(500).json({ error: 'Terjadi kesalahan saat mencari janji' });
-  }
-})
+      // Mendapatkan koleksi 'janji'
+      const janjiCollection = db.collection('janji');
 
-  // Endpoint untuk mencari janji berdasarkan idJanji
-app.get('/infojanji/:idJanji', async (req, res) => {
-  try {
-    const idJanji = req.params.idJanji;
-    const janji = await Janji.findOne({ idJanji: idJanji });
-    if (!janji) {
-      return res.status(404).json({ message: 'Janji tidak ditemukan' });
-    }
-    res.json(janji);
+      // Menjalankan kueri ke koleksi 'janji'
+      const documents = await janjiCollection.find({}).toArray();
+      console.log('Data dari koleksi:');
+      console.log(documents);
+
+      // Mengirimkan respons JSON dengan data yang ditemukan
+      res.json(documents);
   } catch (error) {
-    console.error('Terjadi kesalahan saat mencari janji:', error);
-    res.status(500).json({ error: 'Terjadi kesalahan saat mencari janji' });
+      console.error('Gagal mendapatkan data dari MongoDB Atlas:', error);
+      // Mengirimkan respons kesalahan
+      res.status(500).json({ error: 'Gagal mendapatkan data dari MongoDB Atlas' });
   }
 });
 
-  
+// Endpoint untuk mencari janji berdasarkan idJanji
+app.get('/infojanji/:id', async (req, res) => {
+  try {
+      const id = req.params.id;
+
+      // Mendapatkan koleksi 'janji'
+      const janjiCollection = db.collection('janji');
+
+      // Menjalankan kueri ke koleksi 'janji' berdasarkan ID
+      const janji = await janjiCollection.findOne({ idJanji: id });
+
+      if (!janji) {
+          // Jika janji tidak ditemukan, kirim respons dengan status 404
+          res.status(404).json({ error: 'Janji tidak ditemukan' });
+          return;
+      }
+
+      // Mengirimkan respons JSON dengan data janji yang ditemukan
+      res.json(janji);
+  } catch (error) {
+      console.error('Gagal mendapatkan data dari MongoDB Atlas:', error);
+      // Mengirimkan respons kesalahan
+      res.status(500).json({ error: 'Gagal mendapatkan data dari MongoDB Atlas' });
+  }
+});
+ 
 app.listen(port, () => {
   console.log(`Layanan Manajemen Janji | listening at http://localhost:${port}`)
 })

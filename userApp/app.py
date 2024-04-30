@@ -81,19 +81,19 @@ def login():
             return jsonify({"message": "Invalid email or password"}), 401
     return jsonify({"message": "Login successful"}), 200
 
-# Dashboard route
-@app.route('/dashboard')
-def dashboard():
-    # Cek apakah user sudah login
-    if 'email' in session:
-        email = session['email']
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT namaUser FROM user WHERE email = %s", (email,))
-        nama = cur.fetchone()[0]
-        cur.close()
-        return render_template('dashboard.html', nama=nama)
-    else:
-        return redirect(url_for('login'))
+# # Dashboard route
+# @app.route('/dashboard')
+# def dashboard():
+#     # Cek apakah user sudah login
+#     if 'email' in session:
+#         email = session['email']
+#         cur = mysql.connection.cursor()
+#         cur.execute("SELECT namaUser FROM user WHERE email = %s", (email,))
+#         nama = cur.fetchone()[0]
+#         cur.close()
+#         return render_template('dashboard.html', nama=nama)
+#     else:
+#         return redirect(url_for('login'))
     
 @app.route('/user', methods=['GET', 'POST'])
 def user():

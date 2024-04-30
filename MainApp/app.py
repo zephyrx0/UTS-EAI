@@ -1,10 +1,19 @@
 from flask import Flask, render_template, request, jsonify
 from flask import redirect, url_for, session
+from flask_mysqldb import MySQL
 import requests
 
 app = Flask(__name__)
 
 app.secret_key = 'cobain'
+
+# mysql config
+app.config['MYSQL_HOST'] = 'tubes-nabilamelsyana5-c7f0.a.aivencloud.com'
+app.config['MYSQL_PORT'] = 26484
+app.config['MYSQL_USER'] = 'avnadmin'
+app.config['MYSQL_PASSWORD'] = 'AVNS_pr3FDArYqXJReBFPPXg'
+app.config['MYSQL_DB'] = 'user'
+mysql = MySQL(app)
 
 @app.route('/ulasan/<id>')
 def ulasan(id):
@@ -41,7 +50,7 @@ def register():
 
         # Jika registrasi berhasil, redirect ke halaman login
         if response.status_code == 200:
-            return redirect(url_for('login'))
+            return redirect(url_for('dashboard'))
         else:
             # Mengembalikan respons dari UserApp jika terjadi error
             return response.content, response.status_code
@@ -52,21 +61,37 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        # Mendapatkan data dari permintaan
-        data = request.form
-
-        # Memanggil endpoint /login dari UserApp
-        response = requests.post('http://localhost:3003/login', data=data)
-
-        # Jika login berhasil, set session dan redirect ke halaman dashboard
-        if response.status_code == 200:
+        # Ambil data dari form
+        email = request.form['email']
+        password = request.form['password']
+        
+        # Cek apakah user ada dalam database dan passwordnya cocok
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM user WHERE email = %s AND pass = %s", (email, password))
+        user = cur.fetchone()
+        cur.close()
+        
+        if user:
+            # Set session untuk user yang berhasil login
+            session['email'] = email
             return redirect(url_for('dashboard'))
         else:
-            # Mengembalikan respons dari UserApp jika terjadi error
-            return response.content, response.status_code
+            return jsonify({"message": "Invalid email or password"}), 401
     else:
         # Render halaman login
         return render_template('login.html')
+    
+# Route logout
+@app.route('/logout', methods=['POST'])
+def logout():
+    # Periksa apakah pengguna telah login sebelumnya
+    if 'email' in session:
+        # Hapus session pengguna
+        session.pop('email', None)
+        return redirect(url_for('login'))
+    else:
+        return redirect(url_for('dashboard'))
+
 
 @app.route('/dashboard')
 def dashboard():

@@ -6,94 +6,164 @@
     <title>Dashboard</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            font-family: "Lato", sans-serif;
             margin: 0;
             padding: 0;
-        }
-
-        .navbar {
-            background-color: #4CAF50; /* Warna hijau */
-            padding: 10px 20px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .navbar h1 {
-            margin: 0;
-        }
-
-        .navbar button {
-            background-color: transparent;
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .navigation {
-            background-color: #4CAF50; /* Warna hijau */
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .navigation a {
-            color: white;
-            text-decoration: none;
-            margin-left: 10px;
-        }
-
-        .container {
-            margin: 20px;
-            background-color: #fff;
+            background-color: #f0f0f0;
+          }
+          
+          .container {
+            max-width: 800px;
+            margin: 20px auto;
             padding: 20px;
+            background-color: #fff;
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        table {
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+          }
+          
+          h2 {
+            color: #333;
+            margin-bottom: 20px;
+          }
+          
+          table {
             width: 100%;
             border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 10px;
+          }
+          
+          th, td {
+            padding: 12px;
             border-bottom: 1px solid #ddd;
             text-align: left;
-        }
-
-        th {
-            background-color: #4CAF50; /* Warna hijau */
+          }
+          
+          th {
+            background-color: #007bff;
             color: white;
-        }
-
-        .btn {
-            background-color: #4CAF50; /* Warna hijau */
+            font-weight: bold;
+          }
+          
+          .btn {
+            background-color: #007bff;
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s;
-        }
+            font-size: 16px;
+          }
+          
+          .btn:hover {
+            background-color: #0056b3;
+          }
+          
+          /* Sidebar Navigation */
+          .sidenav {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: 0;
+            background-color: #111;
+            overflow-x: hidden;
+            transition: 0.5s;
+            padding-top: 60px;
+          }
+          
+          .sidenav a {
+            padding: 8px 8px 8px 32px;
+            text-decoration: none;
+            font-size: 20px;
+            color: #ccc;
+            display: block;
+            transition: 0.3s;
+          }
+          
+          .sidenav a:hover {
+            color: #fff;
+          }
+          
+          .sidenav .closebtn {
+            position: absolute;
+            top: 0;
+            right: 20px;
+            font-size: 30px;
+            margin-left: 50px;
+          }
+          
+          .menu-icon {
+            font-size: 30px;
+            cursor: pointer;
+            color: #007bff;
+          }
+          
+          /* Media Query for Mobile Devices */
+          @media screen and (max-width: 768px) {
+            .sidenav {
+              width: 200px;
+              left: 0;
+            }
+          
+            .sidenav a {
+              font-size: 16px;
+            }
+          
+            .sidenav .closebtn {
+              right: 5px;
+            }
+          
+            .container {
+              max-width: 90%;
+              margin: 20px auto;
+              padding: 10px;
+            }
+          
+            .overlay.active {
+            display: block;
+          }
+          
+            .btn {
+              font-size: 14px;
+            }
+          }
 
-        .btn:hover {
-            background-color: #45a049; /* Warna hijau yang lebih gelap saat hover */
-        }
+          .navbar {
+            display: flex;
+            justify-content: flex-end;
+            margin: 30px;
+          }
+
+          .btn-logout {
+            position: absolute;
+            top: 20px; /* Jarak dari atas */
+            right: 20px; /* Jarak dari kanan */
+            background-color: red; /* Warna latar belakang */
+            color: white; /* Warna teks */
+            border: none;
+            padding: 10px 20px; /* Padding */
+            border-radius: 5px; /* Sudut bulatan */
+            cursor: pointer;
+            font-size: 16px; /* Ukuran font */
+            font-weight: bold; /* Ketebalan font */
+            transition: background-color 0.3s; /* Efek transisi hover */
+            outline: none; /* Hilangkan garis tepi saat di-hover */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Font family */
+          }
+          
+          /* Gaya untuk hover */
+          .btn-logout:hover {
+            background-color: #0056b3; /* Warna latar belakang saat di-hover */
+          }
+          
     </style>
 </head>
 <body>
     <div class="navbar">
-        <h1>Dashboard</h1>
-        <button onclick="toggleNavigation()">Menu</button>
+        <form id="logoutForm" action="/logout" method="post">
+            <button class="btn-logout" type="submit">Logout</button>
+        </form>
     </div>
 
     <div class="container">
@@ -112,17 +182,19 @@
                 <!-- Data janji dokter akan dimasukkan di sini -->
             </tbody>
         </table>
-        <button class="btn" onclick="buatJanji()">Buat Janji</button>
+        
     </div>
 
-    <div class="navigation" id="navigation">
-        <a href="#">Buat Janji</a>
+
+    <div id="mySidenav" class="sidenav">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <a href="{{ url_for('dashboard') }}">Menu</a>
         <a href="{{ url_for('listDokter') }}">Daftar Dokter</a>
-        <!-- Tombol logout dalam HTML -->
-        <form id="logoutForm" action="/logout" method="post">
-            <button type="submit">Logout</button>
-        </form>
-    </div>
+        
+      </div>
+
+      <span class="menu-icon" onclick="openNav()">&#9776;</span>
+
 
     <script>
         function toggleNavigation() {
@@ -183,6 +255,14 @@
                     console.error("Error:", error);
                 });
     });
+
+        function openNav() {
+            document.getElementById("mySidenav").style.width = "200px";
+        }
+        
+        function closeNav() {
+            document.getElementById("mySidenav").style.width = "0";
+        }
     </script>
 </body>
 </html>

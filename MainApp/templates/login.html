@@ -6,8 +6,8 @@
     <title>Login</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f2f7ff; /* Warna biru muda */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa; /* Warna abu-abu muda */
             margin: 0;
             padding: 0;
             display: flex;
@@ -17,16 +17,19 @@
         }
 
         .container {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 300px;
+            background-color: #ffffff; /* Warna putih */
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 320px;
+            max-width: 90%;
+            text-align: center;
         }
 
         h1 {
-            text-align: center;
             color: #007bff; /* Warna biru */
+            font-size: 24px;
+            margin-bottom: 20px;
         }
 
         form {
@@ -35,31 +38,41 @@
         }
 
         label {
-            margin-bottom: 10px;
             font-weight: bold;
-            color: #007bff; /* Warna biru */
+            color: #225286; /* Warna biru */
+            margin-bottom: 8px;
+            text-align: left;
         }
 
         input[type="email"],
         input[type="password"] {
-            padding: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #007bff; /* Warna biru */
-            border-radius: 5px;
+            padding: 12px;
+            border: 1px solid #ced4da; /* Warna abu-abu */
+            border-radius: 6px;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 16px;
+            margin-bottom: 24px;
         }
 
         input[type="submit"] {
-            background-color: #007bff; /* Warna biru */
-            color: white;
+            background-color: #225286; /* Warna biru */
+            color: #fff;
             border: none;
-            padding: 15px;
-            border-radius: 5px;
+            padding: 14px 20px;
+            border-radius: 6px;
             cursor: pointer;
             transition: background-color 0.3s;
+            font-size: 16px;
         }
 
         input[type="submit"]:hover {
-            background-color: #0056b3; /* Warna biru yang lebih gelap saat hover */
+            background-color: #d2d3d6; /* Warna biru yang lebih gelap saat hover */
+            color: black;
+        }
+
+        input[type="submit"]:focus {
+            outline: none;
         }
     </style>
 </head>
